@@ -1,0 +1,20 @@
+#+title: {:PROJECT_NAME}
+#+startup: showall
+#+options: num:nil \n:nil
+
+#+latex_header: \usepackage[margin=0.8in]{geometry}
+#+latex_header: \setlength\parindent{0pt}
+
+# [[file:./README.pdf]]
+# [[file:./README.html]]
+
+#+HTML: <a href="https://pypi.org/project/{:PROJECT_NAME}/"><img src="https://badge.fury.io/py/{:PROJECT_NAME}.svg"></a>
+#+HTML: <a href="https://travis-ci.org/{:GROUP_NAME}/{:REPO_NAME}"><img src="https://travis-ci.org/{:GROUP_NAME}/{:REPO_NAME}.svg?branch=master"></a>
+#+HTML: <a href="https://coveralls.io/github/{:GROUP_NAME}/{:REPO_NAME}?branch=master"><img src="https://coveralls.io/repos/github/{:GROUP_NAME}/{:REPO_NAME}/badge.svg?branch=master"></a>
+
+Short description.
+
+* Introduction 
+* Installation
+* Examples
+* Development

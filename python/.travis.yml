@@ -1,0 +1,28 @@
+# https://travis-ci.org/{:GROUP_NAME}/{:REPO_NAME}
+sudo: false
+language: python
+env:
+  global:
+    - PIPENV_VENV_IN_PROJECT=1
+    - PIPENV_IGNORE_VIRTUALENVS=1
+branches:
+  only:
+    - master
+  git:
+    depth: 3
+
+python:
+  - 3.7
+  - 3.8
+  - 3.9
+
+install:
+  - pip install --upgrade pytest pytest-cov
+  - pip install coverage coveralls && export HAS_COVERALLS=1
+  - pip install --pre --editable .[test] || exit $?;
+
+script:
+  - pytest --cov={:MODULE_NAME}
+
+after_success:
+  - if [[ $HAS_COVERALLS && $TRAVIS_PYTHON_VERSION == 3.7 ]] ; then coveralls ; fi

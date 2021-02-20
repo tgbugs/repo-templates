@@ -1,0 +1,57 @@
+# -*- org-todo-keyword-faces: (("WAITING" . "khaki1") ("FAILING" . org-todo) ("PASSING" . org-done) ("RELEASED" . "green") ("DEVELOP" . "gray")); orgstrap-cypher: sha256; orgstrap-norm-func-name: orgstrap-norm-func--prp-1\.1; orgstrap-block-checksum: e18ca3fe10ad5e609d84e14362971fe30a1db8acceb0d959f7b2aa07e063a5c5; -*-
+# [[orgstrap][jump to the orgstrap block for this file]]
+
+#+todo: WAITING FAILING PASSING | RELEASED DEVELOP
+
+* DEVELOP {:PROJECT_NAME}
+# TODO ensure that PYTHON_PATH is working as expected and binds to this section
+#+name: version-{:PROJECT_NAME}
+#+call: get-module-version() :var module="{:MODULE_NAME}" :cache yes
+
+#+name: version-{:PROJECT_NAME}-latest
+#+call: get-package-latest-release() :var module="{:MODULE_NAME}" :cache yes
+
+** test
+#+name: test-{:PROJECT_NAME}
+#+header: :noweb yes
+#+header: :shebang "#!/usr/bin/env bash"
+#+begin_src bash :eval never :tangle ../bin/release-test
+<<*source-build-release>>
+build-release {:GROUP_NAME} {:REPO_NAME} {:REPO_PROJECT_PATH} {:PROJECT_NAME} <<version-{:PROJECT_NAME}()>> \
+--local <<local-git-source()>> \
+--artifact-folder <<release-artifacts()>> \
+--base-path <<testing-base-path()>> \
+$@
+#+end_src
+** test ebuild
+#+header: :var PACKAGE="{:PROJECT_NAME}"
+#+header: :var REPO="{:REPO_NAME}"
+#+header: :shebang "#!/usr/bin/env bash"
+#+begin_src bash :eval never :noweb yes :tangle ../bin/ebuild-test
+export PORTAGE_TMPDIR=/mnt/str/portage/tmp
+<<ebuild-test-common>>
+#+end_src
+** release
+[[file:../bin/release.sh]]
+#+begin_src bash :eval never :noweb yes :tangle ../bin/release.sh
+<<*source-build-release>>
+build-release {:GROUP_NAME} {:REPO_NAME} {:REPO_PROJECT_PATH} {:PROJECT_NAME} <<version-{:PROJECT_NAME}()>> --base-path <<testing-base-path()>>
+push-release {:REPO_PROJECT_PATH} <<software-releases-path()>> {:PROJECT_NAME} <<version-{:PROJECT_NAME}()>>
+final-release <<software-releases-path()>> {:PROJECT_NAME} <<version-{:PROJECT_NAME}()>>
+#+end_src
+* Code :noexport:
+# (vc-root-dir) is broken for git somehow
+# (magit-toplevel) requires additional deps
+#+name: local-git-source
+#+begin_src elisp :cache yes
+(let ((backend 'git))
+  (vc-call-backend backend 'root default-directory))
+#+end_src
+* Bootstrap :noexport:
+#+name: orgstrap
+#+begin_src elisp :results none :lexical yes
+#+end_src
+** Local Variables :ARCHIVE:
+# Local Variables:
+# eval: (progn (setq-local orgstrap-min-org-version "8.2.10") (let ((actual (org-version)) (need orgstrap-min-org-version)) (or (fboundp #'orgstrap--confirm-eval) (not need) (string< need actual) (string= need actual) (error "Your Org is too old! %s < %s" actual need))) (defun orgstrap-norm-func--prp-1\.1 (body) (let (print-quoted print-length print-level) (prin1-to-string (read (concat "(progn\n" body "\n)"))))) (unless (boundp 'orgstrap-norm-func) (defvar orgstrap-norm-func orgstrap-norm-func-name)) (defun orgstrap-norm-embd (body) (funcall orgstrap-norm-func body)) (unless (fboundp #'orgstrap-norm) (defalias 'orgstrap-norm #'orgstrap-norm-embd)) (defun orgstrap-org-src-coderef-regexp (_fmt &optional label) (let ((fmt org-coderef-label-format)) (format "\\([:blank:]*\\(%s\\)[:blank:]*\\)$" (replace-regexp-in-string "%s" (if label (regexp-quote label) "\\([-a-zA-Z0-9_][-a-zA-Z0-9_ ]*\\)") (regexp-quote fmt) nil t)))) (unless (fboundp #'org-src-coderef-regexp) (defalias 'org-src-coderef-regexp #'orgstrap-org-src-coderef-regexp)) (defun orgstrap--expand-body (info) (let ((coderef (nth 6 info)) (expand (if (org-babel-noweb-p (nth 2 info) :eval) (org-babel-expand-noweb-references info) (nth 1 info)))) (if (not coderef) expand (replace-regexp-in-string (org-src-coderef-regexp coderef) "" expand nil nil 1)))) (defun orgstrap--confirm-eval-portable (lang _body) (not (and (member lang '("elisp" "emacs-lisp")) (let* ((body (orgstrap--expand-body (org-babel-get-src-block-info))) (body-normalized (orgstrap-norm body)) (content-checksum (intern (secure-hash orgstrap-cypher body-normalized)))) (eq orgstrap-block-checksum content-checksum))))) (defalias 'orgstrap--confirm-eval #'orgstrap--confirm-eval-portable) (let ((ocbe org-confirm-babel-evaluate)) (setq-local orgstrap-norm-func orgstrap-norm-func-name) (setq-local org-confirm-babel-evaluate #'orgstrap--confirm-eval) (unwind-protect (save-excursion (org-babel-goto-named-src-block "orgstrap") (org-babel-execute-src-block)) (setq-local org-confirm-babel-evaluate ocbe) (org-set-startup-visibility))))
+# End:
